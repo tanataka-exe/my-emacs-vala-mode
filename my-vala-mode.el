@@ -3,17 +3,21 @@
 (defvar my-vala-mode-hook nil)
 
 (defun my-vala-mode-newline()
+  "my-vala-modeで<C-j>を押した時の挙動。
+単純に改行コードを挿入するだけ。インデントしない。"
   (interactive)
   (insert "\n"))
 
 (defun my-vala-mode-newline-and-indent()
+  "my-vala-modeで<C-m>を押した時の挙動。
+改行コードを挿入し、前の行のインデントに揃える。"
   (interactive)
   (let ((prev-indent (current-indentation)))
     (insert "\n")
     (insert (make-string prev-indent ?\s))))
 
 (defun my-vala-indent-right ()
-  "Indent current line to the right by 4 spaces."
+  "字下げする。(インデントをタブ一個分加える)"
   (interactive)
   (if (not (bolp))
       (save-excursion
@@ -22,12 +26,18 @@
     (insert (make-string tab-width ?\s))))
 
 (defun my-vala-indent-left ()
-  "Un-indent current line by removing one leading space (if any)."
+  "字上げする。(インデントをタブ一個分減らす)"
   (interactive)
   (save-excursion
     (beginning-of-line)
-    (when (looking-at " ")
-      (delete-char tab-width))))
+    (let ((n 0))
+      ;; 行頭のスペース数を数える
+      (while (looking-at " ")
+        (setq n (1+ n))
+        (forward-char 1))
+      ;; 戻って、nかtab-widthの小さい方だけ削除
+      (beginning-of-line)
+      (delete-char (min n tab-width)))))
 
 (defvar my-vala-mode-map
   (let ((map (make-sparse-keymap)))
