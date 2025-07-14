@@ -51,14 +51,27 @@
   (list
   ;; キーワード
    (cons (regexp-opt
-          '("class" "interface" "enum" "struct" "delegate" "signal"
-            "public" "private" "protected" "internal" "static" "virtual"
-            "override" "abstract" "const" "new" "get" "set"
-            "if" "else" "for" "while" "do" "break" "continue" "return"
-            "true" "false" "null" "try" "catch" "finally" "throw" "using"
-            "this" "base" "namespace" "var" "void" "int" "double" "bool" "string"
-            "extern" "out" "ref" "owned" "unowned") 'words)
+          '("if" "else" "switch" "case" "default" "do" "while" "for" "foreach" "in" "break"
+            "continue" "return" "try" "catch" "finally" "throw" "lock" "class" "interface"
+            "struct" "enum" "delegate" "errordomain" "const" "weak" "unowned" "dynamic"
+            "callback" "begin" "end" "abstract" "virtual" "override" "signal" "extern"
+            "static" "async" "inline" "new" "public" "private" "protected" "internal" "out"
+            "ref" "throws" "requires" "ensures" "namespace" "using" "as" "is" "in" "new"
+            "delete" "sizeof" "typeof" "this" "base" "get" "set" "construct" "default"
+            "value" "connect" "construct" "static construct" "class construct" "var" "yield"
+            "global" "owned" "with") 'words)
          font-lock-keyword-face)
+   '("\\<[@A-Z_][A-Z0-9_]+\\>" . font-lock-constant-face)
+   '("\\<[0-9]+\\>" . font-lock-constant-face)
+   `(,(regexp-opt '("true" "false" "null" "void" "int" "uint"
+                   "long" "string" "double" "int8" "uint8"
+                   "int16" "uint16" "int32" "uint32" "int64"
+                   "uint64" "float" "bool" "char" "uchar")
+                 'symbols)
+     . font-lock-builtin-face)
+   '("\".*\"" . font-lock-string-face)
+   '("'[^']*'" . font-lock-string-face)
+   '("[][+-/*%=^~|{}()!&><;:,.?/@$]" . font-lock-builtin-face)
    ;; 型名（PascalCaseっぽい）
    '("\\<[A-Z][a-zA-Z0-9_]*\\>" . font-lock-type-face)
    ;; 関数定義
