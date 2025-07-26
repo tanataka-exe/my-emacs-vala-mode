@@ -19,25 +19,70 @@
 (defun my-vala-indent-right ()
   "字下げする。(インデントをタブ一個分加える)"
   (interactive)
-  (if (not (bolp))
-      (save-excursion
-        (beginning-of-line)
-        (insert (make-string tab-width ?\s)))
-    (insert (make-string tab-width ?\s))))
+  (let ((indent-str (make-string tab-width ?\s)))
+    (if (use-region-p)
+        ;;選択範囲がある場合
+        (let* ((start (region-beginning))
+               (end (region-end)))
+          (save-mark-and-excursion
+            ;; カーソルの位置を正規化する
+            (goto-char start)
+            (beginning-of-line)
+            (setq start (point))
+            (goto-char end)
+            (beginning-of-line)
+            (forward-line 1)
+            (setq end (point))
+            ;; 選択範囲の最初の行から
+            (goto-char start)
+            (beginning-of-line)
+            (while (< (point) end)
+              (insert indent-str)
+              (setq end (+ end tab-width))
+              (forward-line 1)))
+          (setq deactivate-mark nil))
+      ;; 選択範囲がない場合
+      (if (not (bolp))
+          ;; カーソルが行頭にある場合
+          (insert (make-string tab-width ?\s))
+        ;; カーソルが行頭以外にある場合
+        (save-excursion
+          (beginning-of-line)
+          (insert (make-string tab-width ?\s)))))))
 
 (defun my-vala-indent-left ()
   "字上げする。(インデントをタブ一個分減らす)"
   (interactive)
-  (save-excursion
-    (beginning-of-line)
-    (let ((n 0))
-      ;; 行頭のスペース数を数える
-      (while (looking-at " ")
-        (setq n (1+ n))
-        (forward-char 1))
-      ;; 戻って、nかtab-widthの小さい方だけ削除
-      (beginning-of-line)
-      (delete-char (min n tab-width)))))
+  (let ((spaces tab-width))
+    (if (use-region-p)
+        ;; 選択範囲がある場合
+        (let ((start (region-beginning))
+              (end (region-end)))
+          (save-mark-and-excursion
+            ;; カーソルの位置を正規化する
+            (goto-char start)
+            (beginning-of-line)
+            (setq start (point))
+            (goto-char end)
+            (beginning-of-line)
+            (forward-line 1)
+            (setq end (point))
+            ;; 選択範囲の最初の行から
+            (goto-char start)
+            ;; 1行ずつ字上げをしていく
+            (while (< (point) end)
+              ;; 空白以外の文字を削除しないように1文字ずつ削除していく
+              (dotimes (i spaces)
+                (when (looking-at " ")
+                  (delete-char 1)
+                  (setq end (- end 1))))
+              (forward-line 1)))
+          (setq deactivate-mark nil))
+      (save-excursion
+        (beginning-of-line)
+        (dotimes (i spaces)
+          (when (looking-at " ")
+            (delete-char 1)))))))
 
 (defvar my-vala-mode-map
   (let ((map (make-sparse-keymap)))
@@ -78,15 +123,14 @@
    '("\\_<\\([a-zA-Z_][a-zA-Z0-9_]*\\)\\_>[ \t]*(" 1 font-lock-function-name-face)))
    ;;'("\\<\\(\\w+\\)\\s-*(" 1 font-lock-function-name-face)
 
-;; コメント構文（Cライク）
 (defvar my-vala-mode-syntax-table
   (let ((st (make-syntax-table)))
-    ;; C++/Javaスタイルコメント
-    (modify-syntax-entry ?/ ". 124b" st)
-    (modify-syntax-entry ?* ". 23" st)
+    ;; 単語構成要素など最低限
+    (modify-syntax-entry ?_ "w" st)
+    (modify-syntax-entry ?\" "\"" st)  ; 文字列
+    (modify-syntax-entry ?/ ". 124" st)
+    (modify-syntax-entry ?* ". 23b" st)
     (modify-syntax-entry ?\n ">" st)
-    ;; 文字列
-    (modify-syntax-entry ?\" "\"" st)
     st))
 
 (defun my-vala-mode ()
